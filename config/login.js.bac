@@ -1,0 +1,9 @@
+var config = {
+    // 下面填写M站（www.missevan.com）
+    // 用户名
+    // 密码
+    username: "用户名",
+    password: "密码"
+};
+
+module.exports = config;

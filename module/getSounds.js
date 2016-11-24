@@ -1,9 +1,14 @@
 var request = require('request');
 var fs = require('fs');
+var { download } = require('../config/config');
+var downloadController = require('../controller/downloadController');
 
 var rsa = require('../lib/rsa');
 
 var s_index = 0;
+
+const pic_thread = download.pic_con;
+const sound_thread = download.sound_con;
 
 function getSounds(sounds, album_name) {
     var dir = `./temp/${album_name}`;
@@ -19,7 +24,8 @@ function getSounds(sounds, album_name) {
         fs.mkdirSync(dir, 755);
     }
 
-    multipleDownloadPics(new_sounds, dir, 2);
+
+    multipleDownload(new_sounds, dir, pic_thread);
 
     var enc = getEnc(new_sounds);
     request.post({
@@ -30,7 +36,7 @@ function getSounds(sounds, album_name) {
         }
     }, (err, response, body) => {
         body = JSON.parse(body);
-        multipleDownloadSounds(body.data, dir, 5);
+        multipleDownload(body.data, dir, sound_thread, false);
     });
 }
 
@@ -46,12 +52,19 @@ function getEnc (new_sounds) {
     return rsa(object);
 }
 
-function multipleDownloadPics(sounds, dir, num) {
+/**
+ * type 1为图片， 10为音频
+ */
+function multipleDownload(sounds, dir, num, is_pic = true) {
     var len = sounds.length;
     var begin = 0;
     var step = Math.ceil(len / num);
     while(begin < len) {
-        downloadPics(sounds.slice(begin, begin + step), dir);
+        if (is_pic) {
+            downloadPics(sounds.slice(begin, begin + step), dir);
+        } else {
+            downloadSounds(sounds.slice(begin, begin + step), dir);
+        }
         begin += step;
     }
 }
@@ -67,17 +80,7 @@ function downloadPics(sounds, dir, p_index = 0) {
                     downloadPics(sounds, dir, p_index);
                 }));
     } else {
-        console.log('all pictures download successed');
-    }
-}
-
-function multipleDownloadSounds(sounds, dir, num) {
-    var len = sounds.length;
-    var begin = 0;
-    var step = Math.ceil(len / num);
-    while(begin < len) {
-        downloadSounds(sounds.slice(begin, begin + step), dir);
-        begin += step;
+        downloadController.emit('part_finish', 0);
     }
 }
 
@@ -92,7 +95,7 @@ function downloadSounds(sounds, dir, s_index = 0) {
                     downloadSounds(sounds, dir, s_index);
                 }));
     } else {
-        console.log('all sounds download successed');
+        downloadController.emit('part_finish', 1);
     }
 }
 

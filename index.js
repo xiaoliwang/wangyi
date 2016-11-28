@@ -2,7 +2,7 @@ const readline = require('readline');
 var jsdom = require('jsdom');
 var fs = require('fs');
 
-var getSounds = require('./module/getSounds');
+var getSounds = require('./model/getSounds');
 
 var jquery = fs.readFileSync("./node_modules/jquery/dist/jquery.min.js", "utf-8");
 

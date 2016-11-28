@@ -3,7 +3,7 @@ const EventEmitter = require('events');
 const co = require('co');
 
 const { download } = require('../config/config');
-const uploadSounds = require('../module/uploadSounds');
+const uploadSounds = require('../model/uploadSounds');
 
 class DownloadEmitter extends EventEmitter {}
 

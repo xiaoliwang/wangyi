@@ -1,5 +1,9 @@
 const EventEmitter = require('events');
+
+const co = require('co');
+
 const { download } = require('../config/config');
+const uploadSounds = require('../module/uploadSounds');
 
 class DownloadEmitter extends EventEmitter {}
 
@@ -23,7 +27,8 @@ var finished = 0;
 downloadController.on('finish', () => {
     ++finished;
     if (finished >= all_part.length) {
-        console.log('all part download succeed')
+        console.log('all part download succeed');
+        co(uploadSounds);
     }
 });
 

@@ -24,6 +24,12 @@ function getSounds(sounds, album_name) {
         fs.mkdirSync(dir, 755);
     }
 
+    var album_sounds = {
+        album_dir: dir,
+        sounds: new_sounds
+    }
+
+    fs.writeFileSync(`./temp/soundlist.txt`, JSON.stringify(album_sounds));
 
     multipleDownload(new_sounds, dir, pic_thread);
 

@@ -1,4 +1,5 @@
 var fs = require('fs');
+const co = require('co');
 
 var request = require('request');
 var FormData = require('form-data');
@@ -14,7 +15,7 @@ request= request.defaults({jar: true});
 request.post = promiseify(request.post);
 request.get = promiseify(request.get);
 
-function *uploadSound() {
+function *uploadSounds() {
     // 登录M站
     yield request.post({
         url: `${domain}/member/login`,
@@ -27,7 +28,7 @@ function *uploadSound() {
         }
     });
 
-    let album_sounds = fs.readFileSync('./temp/soundlist.txt');
+    let album_sounds = fs.readFileSync('../temp/soundlist.txt');
     album_sounds = JSON.parse(album_sounds);
 
     const dir = album_sounds.album_dir;
@@ -49,10 +50,7 @@ function *uploadSound() {
 
         formData = {
             "files[]": fs.createReadStream(`${dir}/${sound.id}.jpg`),
-        }
-
-        console.log('test');
-
+        };
         [response, body] = yield request.post({
             url: `${domain}/msound/UploadImages?minrequire=1`,
             formData: formData
@@ -91,4 +89,4 @@ function *uploadSound() {
     console.log('success at all');
 }
 
-module.exports = uploadSound;
+module.exports = uploadSounds;

@@ -64,8 +64,12 @@ function getEnc (new_sounds) {
 function multipleDownload(sounds, dir, num, is_pic = true) {
     var len = sounds.length;
     var begin = 0;
-    var step = Math.ceil(len / num);
+    var step = Math.floor(len / num);
     while(begin < len) {
+        if ((begin + 2 * step) > len) {
+            step = len - begin;
+        }
+
         if (is_pic) {
             downloadPics(sounds.slice(begin, begin + step), dir);
         } else {

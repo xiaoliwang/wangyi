@@ -2,8 +2,10 @@ var config = {
     // 下面填写M站（www.missevan.com）
     // 用户名
     // 密码
-    username: "用户名",
-    password: "密码"
+    username: "",
+    password: "",
+    album_id: 151753,
+    catalog_id: 21, //20二次元音乐 21三次元音乐
 };
 
 module.exports = config;

@@ -51,8 +51,6 @@ function *uploadSound() {
             "files[]": fs.createReadStream(`${dir}/${sound.id}.jpg`),
         }
 
-        console.log('test');
-
         [response, body] = yield request.post({
             url: `${domain}/msound/UploadImages?minrequire=1`,
             formData: formData

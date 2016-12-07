@@ -1,7 +1,5 @@
 var fs = require('fs');
-
 var request = require('request');
-var FormData = require('form-data');
 
 const config = require('../config/login');
 const { upload } = require('../config/config')
@@ -14,7 +12,7 @@ request= request.defaults({jar: true});
 request.post = promiseify(request.post);
 request.get = promiseify(request.get);
 
-function *uploadSound() {
+function *uploadSounds() {
     // 登录M站
     yield request.post({
         url: `${domain}/member/login`,
@@ -27,16 +25,19 @@ function *uploadSound() {
         }
     });
 
-    let album_sounds = fs.readFileSync('./temp/soundlist.txt');
-    album_sounds = JSON.parse(album_sounds);
+    const dir = global.album_dir;
 
-    const dir = album_sounds.album_dir;
+    let album_sounds = fs.readFileSync(`${dir}/soundlist.txt`);
+    album_sounds = JSON.parse(album_sounds);
 
     for (let sound of album_sounds.sounds) {
         // 上传音频
         var formData = {
             "files[]": fs.createReadStream(`${dir}/${sound.id}.mp3`),
         };
+
+        console.log(`sound ${sound.name} upload start`);
+
         let [response, body] = yield request.post({
             url:`${domain}/msound/UploadSounds`, 
             formData: formData
@@ -45,11 +46,12 @@ function *uploadSound() {
         let sound_path = sound_info.files[0].url;
         
         console.log(`sound ${sound.name} upload success`);
-        console.log(sound_path);
 
         formData = {
             "files[]": fs.createReadStream(`${dir}/${sound.id}.jpg`),
         }
+
+        console.log(`picture ${sound.name} upload start`);
 
         [response, body] = yield request.post({
             url: `${domain}/msound/UploadImages?minrequire=1`,
@@ -59,7 +61,6 @@ function *uploadSound() {
         let pic_path = pic_info.files[0].url;
 
         console.log(`picture ${sound.name} upload success`);
-        console.log(pic_path);
 
         [resposne, body] = yield request.post({
             url: `${domain}/msound/create`,
@@ -89,4 +90,4 @@ function *uploadSound() {
     console.log('success at all');
 }
 
-module.exports = uploadSound;
+module.exports = uploadSounds;

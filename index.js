@@ -1,31 +1,73 @@
 const readline = require('readline');
-var jsdom = require('jsdom');
-var fs = require('fs');
+const jsdom = require('jsdom');
+const fs = require('fs');
+const co = require('co');
 
-var getSounds = require('./model/getSounds');
+const { upload } = require('./config/config');
+const getSounds = require('./model/getSounds');
+const uploadSounds = require('./model/uploadSounds');
 
-var jquery = fs.readFileSync("./node_modules/jquery/dist/jquery.min.js", "utf-8");
+const jquery = fs.readFileSync("./node_modules/jquery/dist/jquery.min.js", "utf-8");
 
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-});
+if (upload.only) {
+  if (fs.existsSync(upload.album_dir)) {
+    global.album_dir = upload.album_dir;
+    co(uploadSounds);
+  } else {
+    console.log('folder doesn\'t exist, please check');
+  }
+} else {
+  // 设置标准输入，标准输出
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+  console.log('You can download playlist from music.163.com.');
+  console.log('Enter the url to download or exit to exit the program.');
+  rl.question('please input url:', checkUrl);
+}
 
-// http://music.163.com/#/playlist?id=82448843
-rl.question('please input url: ', (url) => {
-  // TODO: Log the answer in a database
+
+function checkUrl(url) {
+  // 读取到exit退出程序
+  if (url === 'exit') {
+    rl.close();
+    process.exit();
+  }
+
   url = url.replace('#/', '');
+  if (/^https?:\/\/music.163.com\/playlist\?id=\d+/.test(url)) {
+    getSoundsDetail(url);
+    rl.close();
+  } else {
+    console.log('url is illegal');
+    rl.question('please input url again:', checkUrl);
+  }
+
+
+}
+
+function getSoundsDetail(url) {
   jsdom.env({
     url: url, //"http://music.163.com/playlist?id=82448843",
     src: [jquery],
     done: function(err, window) {
-      var $ = window.$;
-      var album_name = $("h2.f-ff2").text();
-      var sounds = JSON.parse($($("textarea")[0]).text());
-      getSounds(sounds, album_name);
+      if (!err) {
+        let $ = window.$;
+        let album_name = $("h2.f-ff2").text();
+        if (album_name) {
+          let sounds = JSON.parse($($("textarea")[0]).text());
+          sounds = sounds.filter((sound) => {
+            return sound.privilege.st >= 0;
+          });
+          album_name = album_name.replace('/\s/g', '');
+          getSounds(sounds, album_name);
+        } else {
+          console.log('This playlist is not exist');
+        }
+      } else {
+        console.log('net works bad, try again later');
+      }
     }
   });
-  
-  rl.close();
-  
-});
+}

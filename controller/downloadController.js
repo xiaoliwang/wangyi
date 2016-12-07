@@ -15,7 +15,7 @@ let name = ['picture', 'sound'];
 
 downloadController.on('part_finish', (type) => {
     if (index[type] === all_part[type]) {
-        console.log(`${name[type]}s download succeed`);
+        console.log(`all ${name[type]}s download succeed`);
         downloadController.emit('finish');
     } else {
         console.log(`${name[type]} part ${index[type]} download finish`);
@@ -28,7 +28,9 @@ downloadController.on('finish', () => {
     ++finished;
     if (finished >= all_part.length) {
         console.log('all part download succeed');
-        co(uploadSounds);
+        if (!download.only) {
+            co(uploadSounds);
+        }
     }
 });
 

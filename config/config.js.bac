@@ -7,8 +7,8 @@ var config = {
     },
     upload: {
         domain: 'https://www.missevan.com/',
-        album_dir: './temp/网易云音乐喜欢的音乐',
-        only: true // true or false
+        album_dir: '',
+        only: false // true or false
     }
 }
 

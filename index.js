@@ -9,6 +9,11 @@ const uploadSounds = require('./model/uploadSounds');
 
 const jquery = fs.readFileSync("./node_modules/jquery/dist/jquery.min.js", "utf-8");
 
+const rl = readline.createInterface({
+	input: process.stdin,
+	output: process.stdout
+});
+
 if (upload.only) {
   if (fs.existsSync(upload.album_dir)) {
     global.album_dir = upload.album_dir;
@@ -18,10 +23,6 @@ if (upload.only) {
   }
 } else {
   // 设置标准输入，标准输出
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-  });
   console.log('You can download playlist from music.163.com.');
   console.log('Enter the url to download or exit to exit the program.');
   rl.question('please input url:', checkUrl);
@@ -43,8 +44,6 @@ function checkUrl(url) {
     console.log('url is illegal');
     rl.question('please input url again:', checkUrl);
   }
-
-
 }
 
 function getSoundsDetail(url) {

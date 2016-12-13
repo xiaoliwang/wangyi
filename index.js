@@ -53,13 +53,12 @@ function getSoundsDetail(url) {
     done: function(err, window) {
       if (!err) {
         let $ = window.$;
-        let album_name = $("h2.f-ff2").text();
+        let album_name = $("#content-operation").data('rid');
         if (album_name) {
           let sounds = JSON.parse($($("textarea")[0]).text());
           sounds = sounds.filter((sound) => {
             return sound.privilege.st >= 0;
           });
-          album_name = album_name.replace('/\s/g', '');
           getSounds(sounds, album_name);
         } else {
           console.log('This playlist is not exist');

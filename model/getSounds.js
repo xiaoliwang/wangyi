@@ -1,7 +1,7 @@
 var request = require('request');
 var fs = require('fs');
 var { download } = require('../config/config');
-var downloadController = require('../controller/downloadController');
+var downloadEvent = require('../dispatchers');
 
 var rsa = require('../lib/rsa');
 
@@ -93,7 +93,7 @@ function downloadPics(sounds, dir, p_index = 0) {
                     downloadPics(sounds, dir, p_index);
                 }));
     } else {
-        downloadController.emit('part_finish', 0);
+        downloadEvent.emit('part_finish', 0);
     }
 }
 
@@ -110,7 +110,7 @@ function downloadSounds(sounds, dir, s_index = 0) {
                     downloadSounds(sounds, dir, s_index);
                 }));
     } else {
-        downloadController.emit('part_finish', 1);
+        downloadEvent.emit('part_finish', 1);
     }
 }
 

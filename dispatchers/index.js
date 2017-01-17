@@ -6,6 +6,8 @@ const EventEmitter = require('events');
 const { download } = require('../config/config');
 const uploadSounds = require('../model/uploadSounds');
 
+const db = require('../lib/db');
+
 class DownloadEvent extends EventEmitter {};
 const downloadEvent = new DownloadEvent();
 
@@ -22,26 +24,29 @@ let progress_bars = [{
     finished: false
 }];
 
-downloadEvent.on('part_finish', type => {
+downloadEvent.on('part_finish', (type, album_id) => {
     let progress = progress_bars[type];
     if (progress.total === progress.loaded) {
         console.log(`all ${progress.name}s downloaded success`);
-        progress.finished = true;
-        downloadEvent.emit('all_finish');
+        downloadEvent.emit('all_finish', type, album_id);
     } else {
         console.log(`${progress.name} part ${progress.loaded} download finish`);
         ++progress.loaded;
     }
 });
 
-downloadEvent.on('all_finish', () => {
+downloadEvent.on('all_finish', async (type, album_id) => {
+    let progress = progress_bars[type];
+    progress.finished = true;
     if (progress_bars.every((progress) => {
         return progress.finished
     })) {
+        await db.updateSync(
+            { id: album_id, type: 'album'},
+            { $set: {download: true}}
+        );
         console.log('all part download succeed');
-        if (!download.only) {
-            // co(uploadSounds);
-        }
+        uploadSounds(album_id);
     }
 });
 

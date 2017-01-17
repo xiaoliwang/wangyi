@@ -1,5 +1,6 @@
 var fs = require('fs');
 var request = require('request');
+const db = require('../lib/db');
 
 const config = require('../config/login');
 const { upload } = require('../config/config')
@@ -12,9 +13,10 @@ request= request.defaults({jar: true});
 request.post = promiseify(request.post);
 request.get = promiseify(request.get);
 
-function *uploadSounds() {
+async function uploadSounds(album_id) {
+    album_id = parseInt(album_id);
     // 登录M站
-    yield request.post({
+    await request.post({
         url: `${domain}/member/login`,
         headers: {
             'User-Agent': 'Iphone 8S Plus'
@@ -25,20 +27,21 @@ function *uploadSounds() {
         }
     });
 
-    const dir = global.album_dir;
+    let sounds = await db.findSync({ 
+        'type': 'sound', 
+        'upload': false,
+        'album_id': album_id
+    });
 
-    let album_sounds = fs.readFileSync(`${dir}/soundlist.txt`);
-    album_sounds = JSON.parse(album_sounds);
-
-    for (let sound of album_sounds.sounds) {
+    for (let sound of sounds) {
         // 上传音频
         var formData = {
-            "files[]": fs.createReadStream(`${dir}/${sound.id}.mp3`),
+            "files[]": fs.createReadStream(`temp/${album_id}/${sound.id}.mp3`),
         };
 
         console.log(`sound ${sound.name} upload start`);
 
-        let [response, body] = yield request.post({
+        let [response, body] = await request.post({
             url:`${domain}/msound/UploadSounds`, 
             formData: formData
         });
@@ -48,12 +51,12 @@ function *uploadSounds() {
         console.log(`sound ${sound.name} upload success`);
 
         formData = {
-            "files[]": fs.createReadStream(`${dir}/${sound.id}.jpg`),
+            "files[]": fs.createReadStream(`temp/${album_id}/${sound.id}.jpg`),
         }
 
         console.log(`picture ${sound.name} upload start`);
 
-        [response, body] = yield request.post({
+        [response, body] = await request.post({
             url: `${domain}/msound/UploadImages?minrequire=1`,
             formData: formData
         });
@@ -62,7 +65,7 @@ function *uploadSounds() {
 
         console.log(`picture ${sound.name} upload success`);
 
-        [resposne, body] = yield request.post({
+        [resposne, body] = await request.post({
             url: `${domain}/msound/create`,
             form: {
                 "MSound[soundstrlist][]": sound.name,
@@ -84,9 +87,14 @@ function *uploadSounds() {
                 yt0: "确定上传",
             }
         });
-
+        await db.updateSync(
+            { id: sound.id, album_id: album_id, type: 'sound' },
+            { $set: { upload: true } }
+        );
         console.log(`${sound.name} upload success`);
     }
+    await db.removeSync({ album_id: album_id, type: 'sound'}, { multi: true });
+    await db.removeSync({ id: album_id, type: 'album' });
     console.log('success at all');
 }
 

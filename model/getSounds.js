@@ -1,14 +1,11 @@
-const request = require('request');
+const request = require('../lib/request');
 const fs = require('fs');
-const promiseify = require('../lib/promiseify');
-const { download } = require('../config/config');
+
+const { download } = require('../config');
 const downloadEvent = require('../dispatchers');
 
 const rsa = require('../lib/rsa');
 const db = require('../lib/db');
-
-request.getSync = promiseify(request.get);
-request.postSync = promiseify(request.post);
 
 const pic_thread = download.pic_con;
 const sound_thread = download.sound_con;

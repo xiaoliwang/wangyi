@@ -26,12 +26,12 @@ async function exec() {
         case 'exit':
             break;
         default:
-            await getSoundsDetail(url);
+            await getAlbumDetail(url);
     }
     rl.close();
 }
 
-async function getSoundsDetail(url) {
+async function getAlbumDetail(url) {
     await db.removeSync({ type: 'album' }, { multi: true });
     await db.removeSync({ type: 'sound' }, { multi: true });
     jsdom.env({
@@ -52,6 +52,33 @@ async function getSoundsDetail(url) {
             } 
         }
     });
+}
+
+async function dealWithSounds(sounds, album_id) {
+    // 删除没有权限的音频
+    sounds = sounds.filter((sound) => {
+        return sound.privilege.st >= 0;
+    });
+    album = {
+        id: album_id,
+        type: 'album',
+        download: false
+    }
+    sounds = sounds.map((sound) => {
+        return {
+            id: sound.id,
+            name: sound.name,
+            picUrl: sound.album.picUrl,
+            album_id: album_id,
+            type: 'sound',
+            pic_download: false,
+            sound_download: false,
+            upload: false,
+        }
+    });
+    await db.insertSync(album);
+    await db.insertSync(sounds);
+    getSounds(sounds, album_id);
 }
 
 async function keepDownload() {
@@ -95,33 +122,7 @@ async function keepUpload() {
     }
 }
 
-async function dealWithSounds(sounds, album_id) {
-    // 删除没有权限的音频
-    sounds = sounds.filter((sound) => {
-        return sound.privilege.st >= 0;
-    });
-    album = {
-        id: album_id,
-        type: 'album',
-        download: false,
-        upload: false
-    }
-    sounds = sounds.map((sound) => {
-        return {
-            id: sound.id,
-            name: sound.name,
-            picUrl: sound.album.picUrl,
-            album_id: album_id,
-            type: 'sound',
-            pic_download: false,
-            sound_download: false,
-            upload: false,
-        }
-    });
-    await db.insertSync(album);
-    await db.insertSync(sounds);
-    getSounds(sounds, album_id);
-}
+
 
 function checkUrl(url) {
     switch (url) {

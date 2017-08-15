@@ -3,7 +3,7 @@ var request = require('request');
 const db = require('../lib/db');
 
 const config = require('../config/login');
-const { upload } = require('../config/config')
+const { upload } = require('../config')
 const promiseify = require('../lib/promiseify');
 
 const domain = upload.domain;
@@ -33,8 +33,12 @@ async function uploadSounds(album_id) {
         'album_id': album_id
     });
 
+    multipleUpload(sounds, album_id);    
+}
+
+async function uploadSubSounds(sounds, album_id) {
     for (let sound of sounds) {
-        // 上传音频
+         // 上传音频
         var formData = {
             "files[]": fs.createReadStream(`temp/${album_id}/${sound.id}.mp3`),
         };
@@ -76,7 +80,7 @@ async function uploadSounds(album_id) {
                 "MSound[intro]": "",
                 "MSound[catalog_id]": config.catalog_id,
                 "MSound_bind_album": config.album_id,
-                tags: '',
+                tags: config.tags,
                 "MSound[source]": 0,
                 "MSound[download]": 0,
                 x: 0,
@@ -93,9 +97,29 @@ async function uploadSounds(album_id) {
         );
         console.log(`${sound.name} upload success`);
     }
-    await db.removeSync({ album_id: album_id, type: 'sound'}, { multi: true });
-    await db.removeSync({ id: album_id, type: 'album' });
-    console.log('success at all');
+    let exist = await db.findOneSync({ 
+        'type': 'sound', 
+        'upload': false,
+        'album_id': album_id
+    });
+    if (!exist) {
+        console.log('success at all');
+        await db.removeSync({ album_id: album_id, type: 'sound'}, { multi: true });
+        await db.removeSync({ id: album_id, type: 'album' });
+    }
+}
+
+function multipleUpload(sounds, album_id) {
+    let len = sounds.length;
+    let begin = 0, end = 0;
+    let step = Math.floor(len / 3);
+    let more_step = len % 3;
+
+    while (begin < len) {
+        end = begin + step + ((more_step --> 0 ) ? 1 : 0);
+        uploadSubSounds(sounds.slice(begin, end), album_id);
+        begin = end;
+    }
 }
 
 module.exports = uploadSounds;

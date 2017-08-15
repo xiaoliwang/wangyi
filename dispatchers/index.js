@@ -3,7 +3,7 @@
  */
 const EventEmitter = require('events');
 
-const { download } = require('../config/config');
+const { download } = require('../config');
 const uploadSounds = require('../model/uploadSounds');
 
 const db = require('../lib/db');

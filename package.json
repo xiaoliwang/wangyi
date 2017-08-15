@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "node --harmony index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -15,6 +16,7 @@
     "jquery": "^3.1.1",
     "jsdom": "^9.8.3",
     "nedb": "^1.8.0",
+    "node-static": "^0.7.9",
     "request": "^2.78.0"
   }
 }

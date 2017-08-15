@@ -2,13 +2,10 @@ var config = {
     download: {
         // download concurrency
         pic_con: 2,
-        sound_con: 5,
-        only: false // true or false
+        sound_con: 2,
     },
     upload: {
         domain: 'https://www.missevan.com/',
-        album_dir: '',
-        only: false // true or false
     }
 }
 
